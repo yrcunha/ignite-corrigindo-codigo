@@ -1,9 +1,7 @@
 const express = require("express");
-
 const { v4: uuid } = require("uuid");
 
 const app = express();
-
 app.use(express.json());
 
 const repositories = [];
@@ -12,6 +10,13 @@ app.get("/repositories", (request, response) => {
   return response.json(repositories);
 });
 
+/**
+ * id: uuid() --> deve ser um uuid válido
+ * title --> é o título do repositório (por exemplo "unform")
+ * url --> é a URL que aponta para o repositório
+ * techs --> é um array onde cada elemento deve ser uma string com o nome de uma tecnologia relacionada ao repositório
+ * likes: 0 --> é a quantidade de likes que o repositório recebeu
+ */
 app.post("/repositories", (request, response) => {
   const { title, url, techs } = request.body
 
@@ -25,22 +30,22 @@ app.post("/repositories", (request, response) => {
   
   repositories.push(repository)
 
-  return response.json(repository);
+  return response.status(201).json(repository);
 });
 
 app.put("/repositories/:id", (request, response) => {
   const { id } = request.params;
-  const updatedRepository = request.body;
+  const {title, url, techs} = request.body;
 
-  repositoryIndex = repositories.findindex(repository => repository.id === id);
+  const repository = repositories.find(repository => repository.id === id);
 
-  if (repositoryIndex < 0) {
+  if (!repository) {
     return response.status(404).json({ error: "Repository not found" });
   }
 
-  const repository = { ...repositories[repositoryIndex], ...updatedRepository };
-
-  repositories[repositoryIndex] = repository;
+  repository.title = title;
+  repository.url = url;
+  repository.techs = techs;
 
   return response.json(repository);
 });
@@ -50,7 +55,7 @@ app.delete("/repositories/:id", (request, response) => {
 
   repositoryIndex = repositories.findIndex(repository => repository.id === id);
 
-  if (repositoryIndex > 0) {
+  if (repositoryIndex < 0) {
     return response.status(404).json({ error: "Repository not found" });
   }
 
@@ -68,9 +73,9 @@ app.post("/repositories/:id/like", (request, response) => {
     return response.status(404).json({ error: "Repository not found" });
   }
 
-  const likes = ++repositories[repositoryIndex].likes;
+  repositories[repositoryIndex].likes++;
 
-  return response.json(likes);
+  return response.json(repositories[repositoryIndex]);
 });
 
 module.exports = app;
